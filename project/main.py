@@ -1,9 +1,16 @@
+# Константы
+FILE_PATH = "contacts.txt"
+
 # Валидаторы
 
 def process_exit_input(user_input: str):
     if user_input == "exit": exit_app()
 def process_menu_input(user_input: str):
-    if user_input == "menu": menu()
+    """
+    Короче, я решил компромисс, в идеале я бы создал свой exception, но в средневековье меня б сожги за это, ибо рано открыл науку.
+    По этому мы выбросим ошибку с ключом.
+    """
+    if user_input == "menu": raise RuntimeError("MENU")
 
 def prepare_value(value: str):
     process_exit_input(value)
@@ -19,6 +26,9 @@ def is_empty_value(value: str):
 def is_content_has_enter(value: str):
     if "\n" in value:
         print("В строке есть перенос строки, это недопустимо")
+        return False
+    if "," in value:
+        print("В строке есть запятая, это может поломать базу данных, пожалуйста используйте другой символ или пробел")
         return False
 
     return True
@@ -45,7 +55,7 @@ def validate_email(email: str):
 
 # БД
 def get_contacts():
-    with open("contacts.txt", "r") as file:
+    with open(FILE_PATH, "r") as file:
         return file.readlines()
 
 def decode_contact(contact: str) -> dict:
@@ -106,7 +116,7 @@ def add_contact():
 
         break
 
-    with open("contacts.txt", "a") as db:
+    with open(FILE_PATH, "a") as db:
         to_write = f"{name},{phone},{email}\n"
         db.write(to_write)
 
@@ -169,7 +179,7 @@ def remove_contact():
     contact = find_contact(True)
     if not contact: return None
     raw_contacts.remove(f"{contact['name']},{contact['phone']},{contact['email']}\n")
-    with open("contacts.txt", "w") as db:
+    with open(FILE_PATH, "w") as db:
         db.writelines(raw_contacts)
     print("✅ Контакт удалён!")
     return contact
@@ -208,7 +218,7 @@ def update_contact():
                 break
 
         if found:
-            with open("contacts.txt", "w") as db:
+            with open(FILE_PATH, "w") as db:
                 db.writelines(contacts)
             print("✅ Контакт успешно обновлен!")
             show_contact(new_contact)
@@ -247,18 +257,30 @@ def process_menu(user_input: str):
 
 def menu():
     while True:
-        print("-" * 60)
-        print()
-        print("1. Добавить контакт")
-        print("2. Найти контакт")
-        print("3. Удалить контакт")
-        print("4. Обновить контакт")
-        print("5. Просмотреть контакты")
-        print("6. Выйти")
-        user_input = get_input("Введите действие: ", "", is_empty_value)
-        process_menu(user_input)
+        try:
+            print("-" * 60)
+            print()
+            print("1. Добавить контакт")
+            print("2. Найти контакт")
+            print("3. Удалить контакт")
+            print("4. Обновить контакт")
+            print("5. Просмотреть контакты")
+            print("6. Выйти")
+            user_input = get_input("Введите действие: ", "", is_empty_value)
+            process_menu(user_input)
+        except RuntimeError as e:
+            if str(e) == "MENU": continue
+            else: raise e
+        except KeyboardInterrupt:
+           exit_app()
 
 # Запуск приложения
+
+try:
+    with open(FILE_PATH, "x"):
+        print(f"Файл по пути {FILE_PATH} не существует, создаю новый...")
+except FileExistsError: pass
+
 print("Добро пожаловать в телефонную книгу")
 print("Note: Для выхода вы всегда можете прописать exit в любом месте")
 menu()
