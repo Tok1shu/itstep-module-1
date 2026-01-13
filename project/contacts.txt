@@ -1,5 +1,0 @@
-Yaroslav,420728055814,tok1shus@gmail.com
-Diana,420123123123,diana@gmail.com
-Timur,380123123128,timur@gmail.com
-Alex,123123123123,alex@gmail.com
-Alex,123123123124,alex.jr@gmail.com
