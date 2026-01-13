@@ -8,7 +8,7 @@ def process_menu_input(user_input: str):
 def prepare_value(value: str):
     process_exit_input(value)
     process_menu_input(value)
-    return value.strip()
+    return value
 
 def is_empty_value(value: str):
     if not value:
@@ -22,10 +22,6 @@ def is_content_has_enter(value: str):
         return False
 
     return True
-
-def full_validate(value: str):
-    prepared_value = prepare_value(value)
-    return is_content_has_enter(prepared_value) and is_empty_value(prepared_value)
 
 def integer_validate(value: str):
     try: int(value)
@@ -71,10 +67,11 @@ def show_contact(contact: dict):
 
 # old_get_input
 
-def get_input(message: str, default_value=None, *validators):
+def get_input(message: str, default_value="", *validators):
     while True:
-        user_input = input(message)
+        user_input = input(message).strip()
         if not user_input: user_input = default_value
+        prepare_value(user_input)
         if all(validator(user_input) for validator in validators):
             return user_input
 
@@ -99,9 +96,9 @@ def add_contact():
 
         # old_get_input
 
-        name  = get_input("Введите имя: ", full_validate)
-        phone = get_input("Введите номер телефона (12 цифр): +", full_validate, validate_phone)
-        email = get_input("Введите электронную почту: ", full_validate, validate_email)
+        name  = get_input("Введите имя: ", "", is_empty_value, is_content_has_enter)
+        phone = get_input("Введите номер телефона (12 цифр): +", "", validate_phone, is_empty_value, is_content_has_enter)
+        email = get_input("Введите электронную почту: ", "", validate_email, is_empty_value, is_content_has_enter)
 
         if not check_unique_contact(phone, email):
             print("Такой контакт уже существует, попробуйте создать другой")
@@ -124,7 +121,7 @@ def find_contact(get_user_choose: bool = False):
         print("Дабы найти контакт введите:")
         print("- Точное имя")
         print("- Номер телефона (начиная с +)")
-        contact_to_find = get_input("> ", prepare_value, full_validate)
+        contact_to_find = get_input("> ", "", is_empty_value)
         raw_contacts = get_contacts()
 
         found_contacts = []
@@ -148,7 +145,7 @@ def find_contact(get_user_choose: bool = False):
             if get_user_choose:
                 true_choose = False
                 while not true_choose:
-                    user_choose = int(get_input("Выберите контакт по айди: ", integer_validate)) - 1
+                    user_choose = int(get_input("Выберите контакт по айди: ", "",integer_validate, is_empty_value)) - 1
                     try:
                         show_contact(found_contacts[user_choose])
                         true_choose = True
@@ -186,9 +183,9 @@ def update_contact():
     print("Если не хотите менять поле просто впишите пустую строку")
 
     while True:
-        name = get_input("Введите имя: ", contact["name"], prepare_value, is_content_has_enter)
-        phone = get_input("Введите номер телефона (12 цифр): +", contact["phone"], prepare_value, validate_phone, is_content_has_enter)
-        email = get_input("Введите электронную почту: ", contact["email"], prepare_value, validate_email, is_content_has_enter)
+        name = get_input("Введите имя: ", contact["name"], is_content_has_enter)
+        phone = get_input("Введите номер телефона (12 цифр): +", contact["phone"], validate_phone, is_content_has_enter)
+        email = get_input("Введите электронную почту: ", contact["email"], validate_email, is_content_has_enter)
 
         if phone != contact["phone"] or email != contact["email"]:
             if not check_unique_contact(phone, email):
@@ -222,12 +219,14 @@ def update_contact():
 def show_contacts():
     print("-"*60)
     print("Все контакты в базе")
-    sorted_contacts = sorted(get_decoded_contacts(), key=lambda contact: contact["name"])
+    sorted_contacts = sorted(get_decoded_contacts(),key=lambda contact: contact["name"].lower())
+    if len(sorted_contacts) == 0:
+        print("База контактов пуста")
+        return
     for contact in sorted_contacts:
         show_contact(contact)
 
 def process_menu(user_input: str):
-    full_validate(user_input)
     match user_input:
         case "1":
             add_contact()
@@ -256,7 +255,7 @@ def menu():
         print("4. Обновить контакт")
         print("5. Просмотреть контакты")
         print("6. Выйти")
-        user_input = input("Введите действие: ")
+        user_input = get_input("Введите действие: ", "", is_empty_value)
         process_menu(user_input)
 
 # Запуск приложения
