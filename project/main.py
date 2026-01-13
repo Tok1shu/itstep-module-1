@@ -68,9 +68,10 @@ def show_contact(contact: dict):
 
 # old_get_input
 
-def get_input(message: str, *validators):
+def get_input(message: str, default_value=None, *validators):
     while True:
         user_input = input(message)
+        if not user_input: user_input = default_value
         if all(validator(user_input) for validator in validators):
             return user_input
 
@@ -161,8 +162,6 @@ def find_contact(get_user_choose: bool = False):
             print("❌ Контакт не найден")
             return None
 
-
-
 def remove_contact():
     print("-"*60)
     print("Удаление аккаунта")
@@ -179,25 +178,44 @@ def update_contact():
     print("-"*60)
     print("Обновление аккаунта")
     contact = find_contact(True)
+    new_contact = {}
     if not contact: return None
     print("Если не хотите менять поле просто впишите пустую строку")
 
     while True:
-        name = get_input("Введите имя: ", prepare_value, is_content_has_enter)
-        phone = get_input("Введите номер телефона (12 цифр): +", prepare_value, validate_phone, is_content_has_enter)
-        email = get_input("Введите электронную почту: ", prepare_value, validate_email, is_content_has_enter)
+        name = get_input("Введите имя: ", contact["name"], prepare_value, is_content_has_enter)
+        phone = get_input("Введите номер телефона (12 цифр): +", contact["phone"], prepare_value, validate_phone, is_content_has_enter)
+        email = get_input("Введите электронную почту: ", contact["email"], prepare_value, validate_email, is_content_has_enter)
 
-        if not check_unique_contact(phone, email):
-            print("Такой контакт уже существует, попробуйте создать другой")
+        if phone != contact["phone"] or email != contact["email"]:
+            if not check_unique_contact(phone, email):
+                print("Такой контакт уже существует, попробуйте создать другой")
+                break
+
+        new_contact["name"] = name
+        new_contact["phone"] = phone
+        new_contact["email"] = email
+
+        old_line = f"{contact['name']},{contact['phone']},{contact['email']}\n"
+        new_line = f"{new_contact['name']},{new_contact['phone']},{new_contact['email']}\n"
+
+        contacts = get_contacts()
+        found = False
+        for index, line in enumerate(contacts):
+            if line.strip() == old_line.strip():
+                contacts[index] = new_line
+                found = True
+                break
+
+        if found:
+            with open("contacts.txt", "w") as db:
+                db.writelines(contacts)
+            print("✅ Контакт успешно обновлен!")
+            show_contact(new_contact)
             break
+        else:
+            print("Не удалось найти оригинальный контакт для обновления")
 
-        contact["name"] = name if name else contact["name"]
-        contact["phone"] = phone if phone else contact["phone"]
-        contact["email"] = email if email else contact["email"]
-
-        with open("contacts.txt", "a") as db:
-            to_write = f"{contact["name"]},{contact["phone"]},{contact["email"]}\n"
-            db.write(to_write)
 
 
 def show_contacts():
