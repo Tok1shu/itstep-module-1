@@ -1,7 +1,7 @@
 <div align="center">
   
 # Модульный проект: Основы Python и Git (ITStep Prague)
-  
+Задание: [Модуль 1: Основы Python и Git](https://github.com/fullt1lt/CoursesPython/blob/main/Module1.md) | Преподаватель: [Daniil Tupikin](https://github.com/fullt1lt)
 </div>
 
 ### Описание проекта
