@@ -178,19 +178,15 @@ def update_contact():
 def show_contacts():
     print()
 
-# TODO: Снести рекурсию (menu -> process_menu -> menu -> ...)
 def process_menu(user_input: str):
     full_validate(user_input)
     match user_input:
         case "1":
             add_contact()
-            menu()
         case "2":
             find_contact()
-            menu()
         case "3":
             remove_contact()
-            menu()
         case "4":
             update_contact()
         case "5":
@@ -200,7 +196,6 @@ def process_menu(user_input: str):
         case _:
             print()
             print("Данного пункта нет в меню")
-            menu()
 
 
 def menu():
@@ -213,8 +208,9 @@ def menu():
     print("5. Просмотреть контакты")
     print("6. Выйти")
 
-    user_input = input("Введите действие: ")
-    process_menu(user_input)
+    while True:
+        user_input = input("Введите действие: ")
+        process_menu(user_input)
 
 # Запуск приложения
 print("Добро пожаловать в телефонную книгу")
