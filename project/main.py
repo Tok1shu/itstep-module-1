@@ -56,6 +56,9 @@ def decode_contact(contact: str) -> dict:
     name, phone, email = contact.strip("\n").split(",")
     return {"name": name, "phone": phone, "email": email}
 
+def get_decoded_contacts():
+    return [decode_contact(contact) for contact in get_contacts()]
+
 def show_contact(contact: dict):
     print()
     print("Имя: ", contact["name"])
@@ -216,10 +219,12 @@ def update_contact():
         else:
             print("Не удалось найти оригинальный контакт для обновления")
 
-
-
 def show_contacts():
-    print()
+    print("-"*60)
+    print("Все контакты в базе")
+    sorted_contacts = sorted(get_decoded_contacts(), key=lambda contact: contact["name"])
+    for contact in sorted_contacts:
+        show_contact(contact)
 
 def process_menu(user_input: str):
     full_validate(user_input)
