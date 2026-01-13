@@ -27,13 +27,18 @@ def full_validate(value: str):
     prepared_value = prepare_value(value)
     return is_content_has_enter(prepared_value) and is_empty_value(prepared_value)
 
+def integer_validate(value: str):
+    try: int(value)
+    except ValueError:
+        print("Введенным данным должно быть число")
+        return False
+    return True
+
 def validate_phone(phone: str):
-    if len(phone) == 12:
-        result = False
+    result = True
 
-    try: result = int(phone)
-    except ValueError: result = False
-
+    if len(phone) != 12:result = False
+    if not integer_validate(phone): result = False
     if not result: print("Номер должен быть длинной 12 символов\n")
     return result
 
@@ -107,8 +112,7 @@ def add_contact():
     print("✅ Контакт успешно добавлен!")
     return to_write
 
-# TODO: Если несоклько Вась в списке показать их всех, вынести логику куда-то отдельно чтоб переиспользовать
-def find_contact():
+def find_contact(get_user_choose: bool = False):
     print("-"*60)
     print("Поисковик контактов :3")
 
@@ -119,7 +123,7 @@ def find_contact():
         contact_to_find = get_input("> ", prepare_value, full_validate)
         raw_contacts = get_contacts()
 
-        found = None
+        found_contacts = []
         search_query = "name"
 
         if contact_to_find.startswith("+"):
@@ -128,15 +132,34 @@ def find_contact():
 
         for contact in raw_contacts:
             contact = decode_contact(contact)
-            if contact[search_query] == contact_to_find:
-                show_contact(contact)
-                found = contact
-                break
+            value = contact[search_query]
+            if value.lower() == contact_to_find.lower():
+                found_contacts.append(contact)
 
-        if found:
-            return found
+        if len(found_contacts) > 1:
+            print(f"Найдено {len(found_contacts)} контактов с такими данными")
+            for contact in found_contacts:
+                contact_index = found_contacts.index(contact) + 1
+                print(f"{contact_index} | {contact['name']}, {contact['phone']}, {contact['email']}")
+            if get_user_choose:
+                true_choose = False
+                while not true_choose:
+                    user_choose = int(get_input("Выберите контакт по айди: ", integer_validate)) - 1
+                    try:
+                        show_contact(found_contacts[user_choose])
+                        true_choose = True
+                        return found_contacts[user_choose]
+                    except IndexError:
+                        print("Данного индекса нет, выберите из предложенных выше")
+                        continue
+            else: return found_contacts # Возвращаю все контакты, первый по индексу это основной
+        elif len(found_contacts) == 1:
+            print("Найден 1 контакт с такими данными")
+            show_contact(found_contacts[0])
+            return found_contacts[0]
         else:
             print("❌ Контакт не найден")
+            return None
 
 
 
@@ -144,7 +167,8 @@ def remove_contact():
     print("-"*60)
     print("Удаление аккаунта")
     raw_contacts = get_contacts()
-    contact = find_contact()
+    contact = find_contact(True)
+    if not contact: return None
     raw_contacts.remove(f"{contact['name']},{contact['phone']},{contact['email']}\n")
     with open("contacts.txt", "w") as db:
         db.writelines(raw_contacts)
@@ -154,7 +178,8 @@ def remove_contact():
 def update_contact():
     print("-"*60)
     print("Обновление аккаунта")
-    contact = find_contact()
+    contact = find_contact(True)
+    if not contact: return None
     print("Если не хотите менять поле просто впишите пустую строку")
 
     while True:
@@ -184,7 +209,7 @@ def process_menu(user_input: str):
         case "1":
             add_contact()
         case "2":
-            find_contact()
+            find_contact(False)
         case "3":
             remove_contact()
         case "4":
@@ -199,16 +224,15 @@ def process_menu(user_input: str):
 
 
 def menu():
-    print("-"*60)
-    print()
-    print("1. Добавить контакт")
-    print("2. Найти контакт")
-    print("3. Удалить контакт")
-    print("4. Обновить контакт")
-    print("5. Просмотреть контакты")
-    print("6. Выйти")
-
     while True:
+        print("-" * 60)
+        print()
+        print("1. Добавить контакт")
+        print("2. Найти контакт")
+        print("3. Удалить контакт")
+        print("4. Обновить контакт")
+        print("5. Просмотреть контакты")
+        print("6. Выйти")
         user_input = input("Введите действие: ")
         process_menu(user_input)
 
