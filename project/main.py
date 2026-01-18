@@ -1,5 +1,6 @@
 # Константы
 FILE_PATH = "contacts.txt"
+DB_SPLITTER = "," # Не менять при уже действующей бд, может сломать ее.
 
 # Валидаторы
 
@@ -19,7 +20,7 @@ def prepare_value(value: str):
 
 def is_empty_value(value: str):
     if not value:
-        print("Ввод не может быть пустым\n")
+        print("Ввод не может быть пустым")
         return False
     return True
 
@@ -27,8 +28,8 @@ def is_content_has_enter(value: str):
     if "\n" in value:
         print("В строке есть перенос строки, это недопустимо")
         return False
-    if "," in value:
-        print("В строке есть запятая, это может поломать базу данных, пожалуйста используйте другой символ или пробел")
+    if DB_SPLITTER in value:
+        print(f"В строке есть \"{DB_SPLITTER}\", это может поломать базу данных, пожалуйста используйте другой символ или пробел")
         return False
 
     return True
@@ -45,7 +46,7 @@ def validate_phone(phone: str):
 
     if len(phone) != 12:result = False
     if not integer_validate(phone): result = False
-    if not result: print("Номер должен быть длинной 12 символов\n")
+    if not result: print("Номер должен быть длинной 12 символов")
     return result
 
 def validate_email(email: str):
@@ -59,7 +60,7 @@ def get_contacts():
         return file.readlines()
 
 def decode_contact(contact: str) -> dict:
-    name, phone, email = contact.strip("\n").split(",")
+    name, phone, email = contact.strip("\n").split(DB_SPLITTER)
     return {"name": name, "phone": phone, "email": email}
 
 def get_decoded_contacts():
@@ -117,7 +118,7 @@ def add_contact():
         break
 
     with open(FILE_PATH, "a") as db:
-        to_write = f"{name},{phone},{email}\n"
+        to_write = f"{name}{DB_SPLITTER}{phone}{DB_SPLITTER}{email}\n"
         db.write(to_write)
 
     print("✅ Контакт успешно добавлен!")
@@ -178,7 +179,7 @@ def remove_contact():
     raw_contacts = get_contacts()
     contact = find_contact(True)
     if not contact: return None
-    raw_contacts.remove(f"{contact['name']},{contact['phone']},{contact['email']}\n")
+    raw_contacts.remove(f"{contact['name']}{DB_SPLITTER}{contact['phone']}{DB_SPLITTER}{contact['email']}\n")
     with open(FILE_PATH, "w") as db:
         db.writelines(raw_contacts)
     print("✅ Контакт удалён!")
@@ -206,8 +207,8 @@ def update_contact():
         new_contact["phone"] = phone
         new_contact["email"] = email
 
-        old_line = f"{contact['name']},{contact['phone']},{contact['email']}\n"
-        new_line = f"{new_contact['name']},{new_contact['phone']},{new_contact['email']}\n"
+        old_line = f"{contact['name']}{DB_SPLITTER}{contact['phone']}{DB_SPLITTER}{contact['email']}\n"
+        new_line = f"{new_contact['name']}{DB_SPLITTER}{new_contact['phone']}{DB_SPLITTER}{new_contact['email']}\n"
 
         contacts = get_contacts()
         found = False
